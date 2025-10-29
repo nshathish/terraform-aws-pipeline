@@ -68,16 +68,20 @@ Applies Terraform changes to production:
 
 ### 1. Configure AWS Authentication
 
-For GitHub Actions to access AWS, you need to set up OIDC authentication:
+For GitHub Actions to access AWS, you need to set up OIDC authentication.
 
-#### Option A: Using OIDC (Recommended)
+📖 **[See detailed AWS OIDC setup guide](docs/AWS_OIDC_SETUP.md)**
+
+#### Quick Steps:
+
+**Option A: Using OIDC (Recommended)**
 
 1. Create an IAM OIDC identity provider in AWS for GitHub Actions
 2. Create an IAM role with the necessary permissions
 3. Add the role ARN as a repository secret named `AWS_ROLE_ARN`
 4. Uncomment the AWS credentials configuration in the workflow files
 
-#### Option B: Using Access Keys (Not Recommended)
+**Option B: Using Access Keys (Not Recommended)**
 
 1. Create AWS access keys
 2. Add them as repository secrets:
@@ -148,12 +152,13 @@ terraform apply
 
 ## Contributing
 
-1. Create a feature branch
-2. Make your changes
-3. Ensure tests pass (format, validate, lint)
-4. Open a pull request
-5. Review the Terraform plan in PR comments
-6. Merge after approval
+Please see our [Contributing Guide](CONTRIBUTING.md) for detailed information on:
+
+- Development workflow
+- Code standards
+- Testing guidelines
+- Pull request process
+- Security guidelines
 
 ## Security
 

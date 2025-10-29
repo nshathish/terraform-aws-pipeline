@@ -1,0 +1,7 @@
+# Example terraform.tfvars file
+# Copy this file to terraform.tfvars and fill in your values
+# This file is already in .gitignore and will not be committed
+
+aws_region    = "us-east-1"
+environment   = "dev"
+bucket_prefix = "my-terraform-pipeline-"
