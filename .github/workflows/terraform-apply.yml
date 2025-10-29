@@ -1,0 +1,73 @@
+name: Terraform Apply
+
+# This workflow applies Terraform changes to production
+# Uncomment the 'on' trigger when ready to enable automatic deployments
+# on:
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - '**.tf'
+#       - '.github/workflows/terraform-apply.yml'
+
+on:
+  workflow_dispatch: # Manual trigger only for safety
+
+# Required permissions for OIDC authentication
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform-apply:
+    name: Terraform Apply
+    runs-on: ubuntu-latest
+    environment: production # Requires environment approval
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      # Configure AWS credentials using OIDC
+      # Uncomment and configure when AWS credentials are set up
+      # - name: Configure AWS Credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+      #     aws-region: us-east-1
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -auto-approve tfplan
+
+      - name: Comment on commit
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const output = `#### Terraform Apply 🚀\`${{ steps.apply.outcome }}\`
+            
+            *Commit: \`${{ github.sha }}\`*
+            *Pusher: @${{ github.actor }}*
+            *Workflow: \`${{ github.workflow }}\`*`;
+
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: output
+            })
