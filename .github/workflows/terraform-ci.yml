@@ -16,6 +16,10 @@ on:
       - '**.tf'
       - '.github/workflows/terraform-*.yml'
 
+permissions:
+  pull-requests: write
+  contents: read
+
 jobs:
   terraform-checks:
     name: Terraform Quality Checks
@@ -28,7 +32,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.6.0
+          terraform_version: 1.13.4
 
       - name: Terraform Format Check
         id: fmt
@@ -57,16 +61,27 @@ jobs:
         continue-on-error: true
 
       - name: Comment PR
-        uses: actions/github-script@v7
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/github-script@v7        
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            const formatIcon = (outcome) => {
+              if (outcome === 'success') return '✅ success';
+              if (outcome === 'failure') return '❌ failure';
+              if (outcome === 'cancelled') return '⚠️ cancelled';
+              return `❓ ${outcome}`;
+            };
+            
+            const output = `## Terraform Quality Checks Results
 
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
+            | Check | Result |
+            |-------|--------|
+            | 🔍 Format and Style | ${formatIcon('${{ steps.fmt.outcome }}')} |
+            | ⚙️ Initialization | ${formatIcon('${{ steps.init.outcome }}')} |
+            | 🤖 Validation | ${formatIcon('${{ steps.validate.outcome }}')} |
+
+            *Triggered by @${{ github.actor }} via \`${{ github.event_name }}\`*`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -74,3 +89,7 @@ jobs:
               repo: context.repo.repo,
               body: output
             })
+
+      - name: Skip Comment for Forked PR
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        run: echo "Skipping PR comment — pull request is from a fork."
