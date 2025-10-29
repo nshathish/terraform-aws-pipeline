@@ -16,7 +16,7 @@ on:
 # Required permissions for OIDC authentication
 permissions:
   id-token: write
-  contents: read
+  contents: write
 
 jobs:
   terraform-apply:
