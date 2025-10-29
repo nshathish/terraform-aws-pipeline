@@ -16,7 +16,7 @@ on:
 # Required permissions for OIDC authentication
 permissions:
   id-token: write       # For AWS OIDC
-  contents: read        # For code checkout
+  contents: write        # For code checkout
   pull-requests: write  # If you want PR comments in the future
   issues: write         # Alternative for comments
 
