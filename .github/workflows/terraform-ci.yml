@@ -16,6 +16,10 @@ on:
       - '**.tf'
       - '.github/workflows/terraform-*.yml'
 
+permissions:
+  pull-requests: write
+  contents: read
+
 jobs:
   terraform-checks:
     name: Terraform Quality Checks
@@ -62,11 +66,22 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            const formatIcon = (outcome) => {
+              if (outcome === 'success') return '✅ success';
+              if (outcome === 'failure') return '❌ failure';
+              if (outcome === 'cancelled') return '⚠️ cancelled';
+              return `❓ ${outcome}`;
+            };
+            
+            const output = `## Terraform Quality Checks Results
 
-            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Workflow: \`${{ github.workflow }}\`*`;
+            | Check | Result |
+            |-------|--------|
+            | 🔍 Format and Style | ${formatIcon('${{ steps.fmt.outcome }}')} |
+            | ⚙️ Initialization | ${formatIcon('${{ steps.init.outcome }}')} |
+            | 🤖 Validation | ${formatIcon('${{ steps.validate.outcome }}')} |
+
+            *Triggered by @${{ github.actor }} via \`${{ github.event_name }}\`*`;
 
             github.rest.issues.createComment({
               issue_number: context.issue.number,
